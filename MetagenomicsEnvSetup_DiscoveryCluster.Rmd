@@ -1,0 +1,606 @@
+---
+title: Metagenomics Software Setup Protocol
+author: Guangyu Li
+date: Aug 2017
+output: html_document
+---
+
+
+# Overview {#top}
+
+This protocol helps setting up a basic metagenomics computational environment on NEU's Discovery cluster (Linux, and with no administrative (sudo) privileges). Note anyone tries to install those software manually as shown in this protocol is assumed to have basic knowledge of Linux, mandatory skill set of working with terminal (bash) and know how to connect to a remote machine and run commands via ssh. Before the installation, please read the [general guidance](#general) first. Installing programs are listed below:
+
+### Utility software
+
+<font color="#0000FF"><b>Optional:</b></font> These software are optional. For general use, I recommend <b>NOT</b> install them unless specific requirements needed (i.e. in case very new software is needed which fails compilation using existing gcc (4.9.3); such case, however, is very rare. The gcc 4.9.3 should satisfy most time.)
+
+* [GCC 5.4.0 (optional)](#gcc)
+* [GNU binutils (optional)](#binutils)
+
+### Binary programs and dependencies {#load_gcc}
+
+<font color="#FF0000"><b>Important:</b></font> Due to the poor maintenance of Discovery cluster, loaded modules will cause problems in finding programs. Hence make sure that no other modules except the three mandatory one (perl, wfft and slurm) are loaded, then in terminal, input:
+
+```
+$ module load gnu-4.9.3-compilers
+```
+
+to load the gcc 4.9.3 compiler before installing software in this list. If you already build the gcc 5.4.0 in the above list, just skip this.
+
+* [Aragorn](#aragorn)
+* [Barrnap](#barrnap)
+* [Bedtools](#bedtools)
+* [BLAST+](#blast)
+* [BWA (Burrows-Wheeler Aligner)](#bwa)
+* [Diamond](#diamond)
+* [Kraken](#kraken)
+* [Hmmer](#hmmer)
+* [Infernal](#infernal)
+* [Jellyfish](#jellyfish)
+* [GNU Parallel](#parallel)
+* [Prodigal](#prodigal)
+* [Prokka](#prokka)
+* [tbl2asn](#tbl2asn)
+* [Zlib](#zlib)
+
+### Java packages
+
+* [Picard (Java)](#picard)
+
+### Python packages
+
+* [Anvio (Python3)](#anvio)
+* [CONCOCT (Python2)](#concoct)
+<!-- * [MetaPhlAn](#metaphlan) -->
+* [Quast](#metaphlan)
+
+### Perl packages
+
+* [XML::Simple](#xml_simple)
+
+<font color="#00FF00"><b>Note:</b></font> Some software comes only with source code. The users have to compile them on their own. This is the reason why setting up this environment is so painful. If you are impatient, you can follow [this instruction](#impatient) to directly copy my build to your own, skipping the annoing compilation.
+
+<font color="#00FF00"><b>Note:</b></font> During compiling, warnings can be ignored safely in almost all cases.
+
+
+# General guidance about working on Discovery cluster {#general}
+
+### Managing space
+
+Your home directory (/home/you_account_name/) on Discovery cluster (which is your "own space") has a 30GB limit. It is good to install your softwares into, but not run any jobs or build any databases in the home directory. Instead, you should create your own scratch directory in /scratch/your_account_name/. The scratch partition is 1.1PB (1PB=1024TB, 1TB=1024GB) in size and should be sufficient to run most of the jobs. But still make sure that clean the temporary files in your scratch directory after each job is done.
+
+### Running jobs
+
+Once you connected to the Discovery cluster (via discover2.neu.edu or discovery4.neu.edu), you are on "login nodes". These nodes are not designed of running cpu-intensive jobs, so <b>DO NOT RUN ANY JOBS ON THESE NODES</b>. To run jobs, you should allocate an "interactive node" or submit as a "batch job" to the computing nodes (discribed in detail [here](https://www.northeastern.edu/rc/?page_id=18)). However, most computing nodes don't have the access to internet. You have to <b>downloading data on login nodes</b>, or download locally then scp to the remote machine.
+
+### Organizing your software
+
+Everyone has his own manner of organizing files. On Linux systems, a common way of installing software locally is creating a directory called "local" in your home directory, and assign it as prefix whenever installing a software. This protocol is written assuming this manner of organizing, which is better for general use; however, if you copy my build directly, the organizing is different, which, in result will be a bit easier when multiple versions coexist. 
+
+<font color="#00FF00"><b>Guide:</b></font> If you choose the first way, running these codes first before installing any software:
+
+```
+$ if [[ !-d ~/local ]]; then mkdir ~/local; fi
+$ if [[ !-d ~/local/bin ]]; then mkdir ~/local/bin; fi
+$ if [[ !-d ~/local/include ]]; then mkdir ~/local/include; fi
+$ if [[ !-d ~/local/lib ]]; then mkdir ~/local/lib; fi
+```
+
+<font color="#00FF00"><b>Note:</b></font> Feel free to explore [NEU's research computing website](https://www.northeastern.edu/rc/) for more information, policies and tutorials about working with Discovery cluster.
+
+[return to top](#top)
+
+
+# Installation guide
+
+
+## For impatient people {#impatient}
+
+If you only want operational software (hopefully they will work), you can just copy my build and path settings directly by running (will take a long while):
+
+```
+$ cp -r /home/li.gua/usr/ ~/
+$ cp -r /home/li.gua/Jar/ ~/
+cp 
+$ cat /home/li.gua/.bash_paths >> ~/.bashrc
+$ . ~/.bashrc
+```
+
+[return to top](#top)
+
+## Full installation guide
+
+### > Aragorn {#aragorn}
+
+* <font color="#808080">Supports:</font> [Prokka](#prokka) depends on this.
+* <font color="#00FF80">Simple:</font> Simple compilation and installation.
+
+Download aragorn 1.2.38 [here](http://mbio-serv2.mbioekol.lu.se/ARAGORN/Downloads/). Make sure you install version >= 1.2 anyway.
+
+For installation:
+
+```
+$ tar -xvzf aragorn1.2.38.tgz
+$ cd aragorn1.2.38
+$ cd gcc -O3 -ffast-math -finline-functions -o aragorn aragorn1.2.38.c
+$ cp aragorn ~/local/bin/
+```
+
+[return to top](#top)
+
+### > Barrnap {#barrnap}
+
+* <font color="#808080">Supports:</font> [Prokka](#prokka) depends on this.
+* <font color="#00FF80">No-compile:</font> No need to compile.
+* <font color="#0000FF">Perl:</font> An executable Perl script.
+
+Visit [project home](http://www.vicbioinformatics.com/software.barrnap.shtml) or [GitHub repository](https://github.com/tseemann/barrnap). The latest version is 0.8.
+
+If you download from the GitHub release (v0.8), it is already compiled. Just need to copy the executable:
+
+```
+$ unzip barrnap-0.8.zip
+$ cd barrnap-0.8
+$ cp ./bin/barrnap ~/local/bin/
+$ #cp ./binaries/linux/nhmmer ~/local/bin/ # this is necessary in some cases; however we will install hmmer anyway, so this is not necessary (it comes with hmmer, too)
+```
+
+[return to top](#top)
+
+### > Bedtools {#bedtools}
+
+* <font color="#FF0000">Attention:</font> Compiling with special attention.
+* <font color="#00FFFF">Dependencies:</font> Depends on [Zlib](#zlib) to work.
+
+Visit [project home](http://bedtools.readthedocs.io/en/latest/index.html) or download source code at [GitHub repository](https://github.com/arq5x/bedtools2/). The latest release is v2.26.0.
+
+For installation:
+
+```
+$ unzip bedtools2-2.26.0.zip
+$ cd bedtools2-2.26.0
+```
+
+<font color="#FF0000">Attention:</font> There is a bug in makefile rules, which must be fixed before going further. Using vim to edit the Makefile:
+
+```
+$ vim Makefile
+```
+
+Find this line (Line 102) using arrow keys:
+
+```
+BUILT_OBJECTS = $(OBJ_DIR)/*.o
+```
+
+<font color="#FF0000"><b>Important:</b></font> Please follow exactly the instruction, or you will easily get lost if have no experience on Vim.
+
+(1) press <b>i</b> on keyboard (thus your are in editing mode, feeling the same as working with ordinary text editor)
+(2) change this line into (specify the the libz.a library; <font color="#00FF00"><b>Guide:</b></font> if you prefer using my build, just add /home/li.gua/usr/zlib/1.2.11/lib/libz.a):
+
+```
+BUILT_OBJECTS = $(OBJ_DIR)/*.o /home/your_account_name/local/lib/libz.a
+```
+
+(3) After done the chage, press <b>ESC</b>, <b>:wq</b> then press <b>ENTER</b> to save the file and quit vim.
+
+Then it is free to continue building and installing bedtools by running:
+
+```
+make
+make install --prefix="$HOME/local"
+```
+
+[return to top](#top)
+
+### > BLAST+ {#blast}
+
+* <font color="#00FF80">No-compile:</font> No need to compile.
+
+Download the latest version (2.6.0) [here](ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/ncbi-blast-2.6.0+-x64-linux.tar.gz) via [NCBI](https://blast.ncbi.nlm.nih.gov/Blast.cgi).
+
+For installation (simply decompress the archive and copy):
+
+```
+$ tar -zxvf ncbi-blast-2.6.0+-x64-linux.tar.gz
+$ cp -r ncbi-blast-2.6.0+/ ~/local/blast/
+```
+
+Don't forget to add it to your PATH environment variable, if you don't know how to do it, check below:
+
+```
+$ echo 'export PATH="$HOME/local/blast/bin:$PATH"' >> ~/.bashrc
+```
+
+[return to top](#top)
+
+### > BWA (Burrows-Wheeler Aligner) {#bwa}
+
+Visit [project home](http://bio-bwa.sourceforge.net/) or download source code [here](https://sourceforge.net/projects/bio-bwa/files/bwa-0.7.16a.tar.bz2/download). If you are looking at the project page, make sure <b>DO NOT</b> download the bwakit-0.7.12_x64-linux.tar.bz2, it's actually out of date.
+
+For installation:
+
+```
+$ tar -jxvf bwa-0.7.16a.tar.bz2
+$ cd bwa-0.7.16a
+$ make
+$ cp bwa ~/local/bin/
+$ cp -r bwa/bwakit/ ~/local/bin/
+```
+
+[return to top](#top)
+
+### > Diamond {#diamond}
+
+* <font color="#00FF80">No-compile:</font> No need to compile.
+
+Download precompiled binaries with [this link](https://github.com/bbuchfink/diamond/releases/download/v0.9.10/diamond-linux64.tar.gz) or visit repository page on [GitHub](https://github.com/bbuchfink/diamond).
+
+For installation (simply untar the compressed archive and copy):
+
+```
+$ tar -zxvf diamond-linux64.tar.gz
+$ cp diamond ~/local/bin/
+```
+
+This release also includes a manual (PDF) file.
+
+[return to top](#top)
+
+### > Kraken {#kraken}
+
+* <font color="#00FF80">Simple:</font> Simple compilation and installation.
+* <font color="#00FFFF">Dependencies:</font> Depends on [Jellyfish](#jellyfish) to work.
+* <font color="#FF8000">Special:</font> Need to build databases after successful installation.
+
+Visit the project home and download the source code [here](https://ccb.jhu.edu/software/kraken/). Note compile and install don't require [Jellyfish](#jellyfish), but building the library does.
+
+```
+$ tar -zxvf kraken-0.10.5-beta.tgz
+$ cd kraken-0.10.5-beta
+$ ./install_kraken.sh ~/local/kraken
+$ ln -s -T "$HOME/local/kraken/kraken" "$HOME/local/bin/kraken"
+$ ln -s -T "$HOME/local/kraken/kraken-build" "$HOME/local/bin/kraken-build"
+```
+
+For build the library (bacteria, viruses and human with taxonomy) into scratch directory (beware don't accidentally delete it!). First download the data from NCBI using these codes (this will take a while):
+
+```
+$ cd /scratch/your_account_name/
+$ mkdir KRAKEN_DB && mkdir KRAKEN_DB/STANDARD
+$ cd KRAKEN_DB
+$ kraken-build --db STANDARD --download-taxonomy
+$ kraken-build --db STANDARD --download-library bacteria
+$ #kraken-build --db STANDARD --download-library plasmids # Currently it is not available via NCBI. You can still try this out though.
+$ kraken-build --db STANDARD --download-library viruses
+$ kraken-build --db STANDARD --download-library human
+```
+
+Then allocate an interactive node (adjust your thread setting accordingly) and run codes below (this will take more while):
+
+```
+$ cd /scratch/your_account_name/KRAKEN_DB
+$ kraken-build --db STANDARD --build --threads 32
+```
+
+[return to top](#top)
+
+### > Hmmer {#hmmer}
+
+* <font color="#808080">Supports:</font> [Prokka](#prokka) depends on this.
+* <font color="#00FF80">Simple:</font> Simple compilation and installation.
+
+Download the latest version (v3.1b2) from [this link](http://eddylab.org/software/hmmer3/3.1b2/hmmer-3.1b2-linux-intel-x86_64.tar.gz), or visit its [project page](http://hmmer.org/).
+
+For installation:
+
+```
+$ tar -zxvf hmmer-3.1b2-linux-intel-x86_64.tar.gz
+$ cd hmmer-3.1b2-linux-intel-x86_64
+$ ./configure --prefix="$HOME/local"
+$ make
+$ make install
+```
+
+[return to top](#top)
+
+### > Infernal {#infernal}
+
+* <font color="#808080">Supports:</font> [Prokka](#prokka) depends on this.
+
+Project home is [here](http://eddylab.org/infernal/) and you can download the latest relase source code via [this link](http://eddylab.org/infernal/infernal-1.1.2.tar.gz). Make sure you install version >= 1.1 anyway.
+
+For installation:
+
+```
+$ tar -zxvf infernal-1.1.2.tar.gz
+$ cd infernal-1.1.2
+$ ./configure --prefix="$HOME/local"
+$ make
+$ make install
+```
+
+[return to top](#top)
+
+### > Jellyfish {#jellyfish}
+
+* <font color="#808080">Supports:</font> [Kraken](#kraken) depends on this.
+* <font color="#00FF80">Simple:</font> Simple compilation and installation.
+
+Latest release of Jellyfish is 2.2.6, however, Kraken specifically requires Jellyfish v1.x. The latest comparable version (v1.1.11) source codes can be found with [this download](http://www.cbcb.umd.edu/software/jellyfish/jellyfish-1.1.11.tar.gz). Also visit [GitHub](https://github.com/gmarcais/Jellyfish) repository for newer versions.
+
+For installation:
+
+```
+$ tar -zxvf jellyfish-1.1.11.tar.gz
+$ cd jellyfish-1.1.11
+$ ./configure --prefix="$HOME/local"
+$ make
+$ make install
+```
+
+[return to top](#top)
+
+### > GNU Parallel {#parallel}
+
+* <font color="#808080">Supports:</font> [Prokka](#prokka) depends on this.
+* <font color="#00FF80">Simple:</font> Simple compilation and installation.
+
+GNU Parallel is a library belongs to the GNU project. You can find its project home on [GNU website](https://www.gnu.org/software/parallel/), or take a look at its [FTP repository](ftp://ftp.gnu.org/gnu/parallel/), or directly download the [latest release](ftp://ftp.gnu.org/gnu/parallel/parallel-20170722.tar.bz2). Make sure you install version >= 20130422 anyway (latest version appears on bottom of this page).
+
+For installation:
+
+```
+$ tar -jxvf parallel-20170722.tar.bz2
+$ cd parallel-20170722
+$ ./configure --prefix="$HOME/local"
+$ make
+$ make install
+```
+
+[return to top](#top)
+
+### > Prodigal {#prodigal}
+
+* <font color="#808080">Supports:</font> [Prokka](#prokka) depends on this.
+* <font color="#00FF80">Simple:</font> Simple compilation and installation.
+
+Download the source code [here](https://github.com/hyattpd/Prodigal/archive/v2.6.3.tar.gz) via [GitHub](https://github.com/hyattpd/Prodigal/).
+
+For installation:
+
+```
+$ tar -zxvf Prodigal-2.6.3.tar.gz
+$ cd Prodigal-2.6.3
+$ make install INSTALLDIR="$HOME/local/bin"
+```
+
+[return to top](#top)
+
+### > Prokka {#prokka}
+
+* <font color="#00FFFF">Dependencies:</font> Depends on [Aragorn](#aragorn), [BLAST+](#blast), [Hmmer](#hmmer), [Infernal](#infernal), [GNU Parallel](#parallel), [Prodigal](#prodigal), [tbl2asn](#tbl2asn), [XML::Simple](xml_simple) to work.
+* <font color="#00FF80">No-compile:</font> No need to compile.
+* <font color="#FF8000">Special:</font> Need to build databases after successful installation.
+
+The latest version in v1.1.2 via [this link](http://www.vicbioinformatics.com/prokka-1.12.tar.gz) found at [project home](http://www.vicbioinformatics.com/software.prokka.shtml).
+
+For installation (simply untar and copy):
+
+```
+$ tar -zxvf prokka-1.12.tar.gz
+$ mv prokka-1.12/ ~/local/prokka
+```
+
+Don't forget to add it to your PATH environment variable, if you don't know how to do it, check below:
+
+```
+$ echo 'export PATH="$HOME/local/prokka/bin:$PATH"' >> ~/.bashrc
+```
+
+Logout then login again, then build the database with:
+
+```
+$ prokka --setupdb
+```
+
+[return to top](#top)
+
+### > tbl2asn {#tbl2asn}
+
+* <font color="#808080">Supports:</font> [Prokka](#prokka) depends on this.
+* <font color="#00FF80">No-compile:</font> No need to compile.
+
+The pre-compiled binary file is available on NCBI via [this link](ftp://ftp.ncbi.nih.gov/toolbox/ncbi_tools/converters/by_program/tbl2asn/linux64.tbl2asn.gz) or check out [this FTP](ftp://ftp.ncbi.nih.gov/toolbox/ncbi_tools/converters/by_program/tbl2asn/)
+
+For installation (simply gunzip, chmod and copy):
+
+```
+$ gunzip -d linux64.tbl2asn.gz
+$ chmod 755 linux64.tbl2asn
+$ mv linux64.tbl2asn ~/local/bin/tbl2asn
+```
+
+[return to top](#top)
+
+### > Zlib {#zlib}
+
+* <font color="#808080">Supports:</font> [Bedtools](#bedtools) depends on this.
+* <font color="#FF0000">Attention:</font> Compiling with special attention.
+
+Visit [project home](https://zlib.net/) and download latest version (v1.2.11) [here](https://zlib.net/zlib-1.2.11.tar.gz). Zlib is actually already built on Discovery cluster, however, bedtools specifically requires a static library (libz.a) to link, which cannot be found on Discovery cluster. You can use my build (/home/li.gua/usr/zlib/1.2.11/lib/libz.a) instead of building your own. Since it is a static library, once bedtools is linked, it is no longer required.
+
+For installation:
+
+```
+$ tar -zxvf zlib-1.2.11.tar.gz
+$ cd zlib-1.2.11
+$ make --64 --prefix="$HOME/local"
+$ make install
+```
+
+<font color="#FF0000">Attention:</font> The --64 flag should be explicitly assigned.
+
+[return to top](#top)
+
+### > Picard (Java) {#picard}
+
+* <font color="#FF8000">Special:</font> This is a jar archive.
+
+Latest release can be found on [GitHub](https://github.com/broadinstitute/picard/releases/tag/2.10.9) (make sure you download the picard.jar, not source code).
+
+Jar file is ready to use, just put it some where you can find. For example:
+
+```
+$ if [[ !-d ~/Jar ]]; then mkdir ~/Jar; fi
+$ mv picard.jar ~/Jar/
+```
+
+When you want to run the jar file, you should load the jre (Java run time):
+
+```
+$ module load oracle_java_1.8u60
+$ java -jar ~/Jar/picard.jar -h # this shows the help
+```
+
+[return to top](#top)
+
+### > Anvio (Python3) {#anvio}
+
+* <font color="#FF8000">Special:</font> This is a Python module.
+* <font color="#FF0000">Attention:</font> This library only works for Python3.
+
+For installation:
+
+```
+$ module load python-3.5.2
+$ export PYTHONPATH="$HOME/local/lib/python3.5/site-packages"
+
+pip3 install anvio --upgrade --prefix="$HOME/local"
+```
+
+For use we must load Python3 (recommend <b>DO NOT</b> load Python module with .bashrc file):
+
+```
+$ module load python-3.5.2
+$ export PYTHONPATH="$HOME/local/lib/python3.5/site-packages"
+
+# put your script here ###
+```
+
+[return to top](#top)
+
+### > CONCOCT (Python2) {#concoct}
+
+* <font color="#FF8000">Special:</font> This is a Python module.
+* <font color="#FF0000">Attention:</font> This library only works for Python2.
+
+Due to the pip bug (specifically in this version on Discovery cluster, not anyone), we have to install the module manually from source code. Download from [GitHub](https://github.com/BinPro/CONCOCT/archive/0.4.0.tar.gz).
+
+```
+$ module load python-2.7.5
+$ export PYTHONPATH="$HOME/local/lib/python2.7/site-packages"
+
+$ tar -zxvf CONCOCT-0.4.0.tar.gz
+$ cd CONCOCT-0.4.0
+$ python setup.py install --prefix="$HOME/local"
+```
+
+This installation will put a exceutable script into ~/local/bin, (no need to do 'import concoct' within python). For calling concoct:
+
+```
+$ module load python-2.7.5
+$ export PYTHONPATH="$HOME/local/lib/python2.7/site-packages"
+
+$ concoct --help
+```
+
+[return to top](#top)
+
+### > Quast (Python) {#quast}
+
+* <font color="#FF8000">Special:</font> This is a Python module.
+
+<font color="#00FF00"><b>Note:</b></font> This module is inteded to work with both Python2.7+ and Python3.3+. I installed it into Python3, you can choose what you prefer. Here is my installation example using pip:
+
+```
+$ module load python-3.5.2
+$ export PYTHONPATH="$HOME/local/lib/python3.5/site-packages"
+
+pip3 install quast --upgrade --prefix="$HOME/local"
+```
+
+This installation will put a exceutable script into ~/local/bin, (no need to do 'import quast' within python). For calling quast:
+
+```
+$ module load python-3.5.2
+$ export PYTHONPATH="$HOME/local/lib/python3.5/site-packages"
+
+$ quast --help
+```
+
+[return to top](#top)
+
+### > XML::Simple (Perl) {#xml_simple}
+
+* <font color="#808080">Supports:</font> [Prokka](#prokka) depends on this.
+* <font color="#FF8000">Special:</font> This is a perl module. Make sure you loaded module perl-5.20.0 before procceding.
+
+For installation:
+
+First, open cpan (answer 'yes' when asked about automation):
+
+```
+$ cpan
+```
+
+Since we don't have sudo privilege, we need to change the install prefix to our local directory, then install the module. In cpan, input below commands:
+
+```
+cpan> o conf makepl_arg "PREFIX=/home/your_account_name/local/"
+cpan> o conf commit
+cpan> install XML::Simple
+```
+
+[return to top](#top)
+
+## Utility installation guide
+
+For those people need to use newer versions of GCC, as (assembler) and ld (linker) for compilation, I provided the installation I did below:
+
+### GCC 5.4.0 (Optional) {#gcc}
+
+Download GCC suite from [GNU FTP](ftp://ftp.gnu.org/gnu/gcc/) (I downloaded version 5.4.0, do not build too new versions, some times they too, cause problems). Then:
+
+```
+$ tar -zxvf gcc-5.4.0.tar.gz
+$ cd gcc-5.4.0
+$ contrib/download_prerequisites # this downloads the prerequisites like gmp, mpfr, etc., and automatically build with gcc.
+$ mkdir build_dir && cd build_dir
+$ ../configure --prefix="$HOME/usr/gcc/5.4.0" --enable-languages=c,c++,fortran # you can also add ada and go if needed
+$ make -j 32 # allocate a 32-CPU node to do this will be a lot faster
+$ make check -j 32 # I encountered a failure, in zmp or something, but not critical, so ignored
+$ make install
+```
+
+<font color="#00FF00"><b>Note:</b></font> Make sure you override the system's default bin path with PATH env-var.
+
+[return to top](#top)
+
+### Binutils (Optional) {#binutils}
+
+Binutils are essential to compilers but not released in GCC suite. The two most imporatant ones are as (assembler) and ld (linker). The as and ld version on Discovery cluster is extremely out-of-date (released in 2010; compare to GCC 4.9.3, in 2015). This will cause some problems in compiling newer software. Download GNU binutils from [GNU FTP](ftp://ftp.gnu.org/gnu/binutils/) (I downloaded version 2.26.1). Then:
+
+```
+$ tar -zxvf binutils-2.26.1.tar.gz
+$ cd binutils-2.26.1
+$ mkdir build_dir && cd build_dir
+$ ../configure --prefix="$HOME/usr/binutils/2.26.1"
+$ make -j 32 # do this on interactive node
+$ make check -j 32 # always check or test if available
+$ make install
+```
+
+<font color="#00FF00"><b>Note:</b></font> Make sure you override the system's default bin path with PATH env-var.
+
+[return to top](#top)
