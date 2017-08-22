@@ -29,18 +29,24 @@ to load the gcc 4.9.3 compiler before installing software in this list. If you a
 
 * [Aragorn](#aragorn)
 * [Barrnap](#barrnap)
+* [Bcftools](#bfctools)
 * [Bedtools](#bedtools)
 * [BLAST+](#blast)
+<!-- * [bowtie](#bowtie) -->
 * [BWA (Burrows-Wheeler Aligner)](#bwa)
+* [Bzip2](#bzip2)
 * [Diamond](#diamond)
 * [Kraken](#kraken)
 * [Hmmer](#hmmer)
+* [HTSlib](#htslib)
 * [Infernal](#infernal)
 * [Jellyfish](#jellyfish)
 * [GNU Parallel](#parallel)
 * [Prodigal](#prodigal)
 * [Prokka](#prokka)
+* [Samtools](#samtools)
 * [tbl2asn](#tbl2asn)
+* [XZ Utils](#xzutils)
 * [Zlib](#zlib)
 
 ### Java packages
@@ -52,10 +58,12 @@ to load the gcc 4.9.3 compiler before installing software in this list. If you a
 * [Anvio (Python3)](#anvio)
 * [CONCOCT (Python2)](#concoct)
 <!-- * [MetaPhlAn](#metaphlan) -->
+* [Pysam](#pysam)
 * [Quast](#metaphlan)
 
 ### Perl packages
 
+* [List::MoreUtils](#list_moreutils)
 * [XML::Simple](#xml_simple)
 
 <font color="#00FF00"><b>Note:</b></font> Some software comes only with source code. The users have to compile them on their own. This is the reason why setting up this environment is so painful. If you are impatient, you can follow [this instruction](#impatient) to directly copy my build to your own, skipping the annoing compilation.
@@ -112,7 +120,7 @@ $ . ~/.bashrc
 
 ### > Aragorn {#aragorn}
 
-* <font color="#808080">Supports:</font> [Prokka](#prokka) depends on this.
+* <font color="#808080">Supports:</font> [Prokka](#prokka).
 * <font color="#00FF80">Simple:</font> Simple compilation and installation.
 
 Download aragorn 1.2.38 [here](http://mbio-serv2.mbioekol.lu.se/ARAGORN/Downloads/). Make sure you install version >= 1.2 anyway.
@@ -130,7 +138,7 @@ $ cp aragorn ~/local/bin/
 
 ### > Barrnap {#barrnap}
 
-* <font color="#808080">Supports:</font> [Prokka](#prokka) depends on this.
+* <font color="#808080">Supports:</font> [Prokka](#prokka).
 * <font color="#00FF80">No-compile:</font> No need to compile.
 * <font color="#0000FF">Perl:</font> An executable Perl script.
 
@@ -147,10 +155,26 @@ $ #cp ./binaries/linux/nhmmer ~/local/bin/ # this is necessary in some cases; ho
 
 [return to top](#top)
 
+### > Bcftools {#bcftools}
+
+* <font color="#00FFFF">Dependencies:</font> [HTSlib](#htslib).
+
+[Bcftools](#bcftools), [HTSlib](#htslib) and [Samtools](#samtools) come as a suite. If you try to install more than one of them, it is better to install the same version across. The repository page on GitHub is [here](https://github.com/samtools). The latest version so far is 1.5, on release page [here](https://github.com/samtools/bcftools/releases). Samtools are already built on Discovery cluster, however, it is relatively low in version (0.1.19).
+
+For installation:
+
+```
+$ tar -jxvf bcftools-1.5.tar.bz2
+$ cd bcftools-1.5
+$ ./configure --prefix="$HOME/local" CFLAGS="-I$HOME/local/include" LDFLAGS="-L$HOME/local/lib" --with-htslib="$HOME/local"
+$ make
+$ make install
+```
+
 ### > Bedtools {#bedtools}
 
 * <font color="#FF0000">Attention:</font> Compiling with special attention.
-* <font color="#00FFFF">Dependencies:</font> Depends on [Zlib](#zlib) to work.
+* <font color="#00FFFF">Dependencies:</font> [Zlib](#zlib).
 
 Visit [project home](http://bedtools.readthedocs.io/en/latest/index.html) or download source code at [GitHub repository](https://github.com/arq5x/bedtools2/). The latest release is v2.26.0.
 
@@ -161,7 +185,14 @@ $ unzip bedtools2-2.26.0.zip
 $ cd bedtools2-2.26.0
 ```
 
-<font color="#FF0000">Attention:</font> There is a bug in makefile rules, which must be fixed before going further. Using vim to edit the Makefile:
+The Bedtools speficically requires the static lib of zlib (libz.a) which cannot be found on Discovery cluster. To continue, make sure you build your own [Zlib](#zlib); You can also just use my build with replacing the path (things after -L) by /home/li.gua/usr/zlib/1.2.11/lib. To move on:
+
+```
+make LDFLAGS="-L$HOME/local/lib"
+make install --prefix="$HOME/local"
+```
+
+<!-- <font color="#FF0000">Attention:</font> There is a bug in makefile rules, which must be fixed before going further. Using vim to edit the Makefile:
 
 ```
 $ vim Makefile
@@ -189,13 +220,15 @@ Then it is free to continue building and installing bedtools by running:
 ```
 make
 make install --prefix="$HOME/local"
-```
+``` -->
 
 [return to top](#top)
 
 ### > BLAST+ {#blast}
 
 * <font color="#00FF80">No-compile:</font> No need to compile.
+* <font color="#00FFFF">Dependencies:</font> [List::MoreUtils](#list_moreutils).
+* <font color="#FF8000">Special:</font> Need to build databases after successful installation.
 
 Download the latest version (2.6.0) [here](ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/ncbi-blast-2.6.0+-x64-linux.tar.gz) via [NCBI](https://blast.ncbi.nlm.nih.gov/Blast.cgi).
 
@@ -212,6 +245,36 @@ Don't forget to add it to your PATH environment variable, if you don't know how 
 $ echo 'export PATH="$HOME/local/blast/bin:$PATH"' >> ~/.bashrc
 ```
 
+<font color="#00FF00"><b>Note:</b></font> If you want to do local blast, the database is needed, otherwise you do not need to do so (by running against NCBI's remote database with switch -remote if you have internet access).
+
+<font color="#00FF00"><b>Note:</b></font> This database is huge. To save space on Discovery cluster, you can check and use my database at /scratch/li.gua/BLAST_DB/ if available. By adding below information to your ~/.ncbirc (create this file if not exist):
+
+```
+[BLAST]
+BLASTDB=/scratch/li.gua/BLAST_DB
+```
+
+If you want to build the database anyway, try this:
+
+```
+cd /path/to/your/database/
+update_blastdb.pl nr swissprot pdbaa refseq_protein taxdb nt
+
+# this step can be done separately after download, on any interactive nodes:
+tar -zxpf *.tar.gz
+```
+
+These databases should be roughly enough. You may still need to edit your ~/.ncbirc file (see above step).
+
+Other libraries that cannot be built with update_blastdb.pl:
+
+* [Cdd](ftp://ftp.ncbi.nih.gov/pub/mmdb/cdd/little_endian/Cdd_LE.tar.gz) (NCBI's Conserved Domains Database)
+* [COG](ftp://ftp.ncbi.nih.gov/pub/mmdb/cdd/little_endian/Cog_LE.tar.gz) (NCBI's Clusters of Orthologous Groups Database)
+* [Pfam](ftp://ftp.ncbi.nih.gov/pub/mmdb/cdd/little_endian/Pfam_LE.tar.gz)
+* [Smart](ftp://ftp.ncbi.nih.gov/pub/mmdb/cdd/little_endian/Smart_LE.tar.gz)
+
+All these are in little endians; for big endians, check this [FTP](ftp://ftp.ncbi.nih.gov/pub/mmdb/cdd/big_endian/). Download all tarballs into your $BLASTDB and proceed with untar. These databases are all comparable with other NCBI blast databases.
+
 [return to top](#top)
 
 ### > BWA (Burrows-Wheeler Aligner) {#bwa}
@@ -226,6 +289,24 @@ $ cd bwa-0.7.16a
 $ make
 $ cp bwa ~/local/bin/
 $ cp -r bwa/bwakit/ ~/local/bin/
+```
+
+[return to top](#top)
+
+### > Bzip2 {#bzip2}
+
+* <font color="#808080">Supports:</font> [bowtie](#bowtie), [HTSlib](#htslib).
+* <font color="#FF0000">Attention:</font> Compiling with special attention.
+
+Its project home is [here](http://www.bzip.org/), and latest source tarball should be found in [this link](http://www.bzip.org/1.0.6/bzip2-1.0.6.tar.gz).
+
+For installation:
+
+```
+$ tar -zxvf bzip2-1.0.6.tar.gz
+$ cd bzip2-1.0.6
+$ make -f Makefile-libbz2_so # we need a shared library. directly compile with make will end up in a static object
+$ make install PREFIX="$HOME/local"
 ```
 
 [return to top](#top)
@@ -250,7 +331,7 @@ This release also includes a manual (PDF) file.
 ### > Kraken {#kraken}
 
 * <font color="#00FF80">Simple:</font> Simple compilation and installation.
-* <font color="#00FFFF">Dependencies:</font> Depends on [Jellyfish](#jellyfish) to work.
+* <font color="#00FFFF">Dependencies:</font> [Jellyfish](#jellyfish).
 * <font color="#FF8000">Special:</font> Need to build databases after successful installation.
 
 Visit the project home and download the source code [here](https://ccb.jhu.edu/software/kraken/). Note compile and install don't require [Jellyfish](#jellyfish), but building the library does.
@@ -287,7 +368,7 @@ $ kraken-build --db STANDARD --build --threads 32
 
 ### > Hmmer {#hmmer}
 
-* <font color="#808080">Supports:</font> [Prokka](#prokka) depends on this.
+* <font color="#808080">Supports:</font> [Prokka](#prokka).
 * <font color="#00FF80">Simple:</font> Simple compilation and installation.
 
 Download the latest version (v3.1b2) from [this link](http://eddylab.org/software/hmmer3/3.1b2/hmmer-3.1b2-linux-intel-x86_64.tar.gz), or visit its [project page](http://hmmer.org/).
@@ -304,9 +385,28 @@ $ make install
 
 [return to top](#top)
 
+### > HTSlib {#htslib}
+
+* <font color="#808080">Supports:</font> [Bcftools](bcftools), [Samtools](#samtools).
+* <font color="#00FFFF">Dependencies:</font> [Bzip2](#bzip2), [XZ Utils](#xzutils).
+
+[Bcftools](#bcftools), [HTSlib](#htslib) and [Samtools](#samtools) come as a suite. If you try to install more than one of them, it is better to install the same version across. The repository page on GitHub is [here](https://github.com/samtools). The latest version so far is 1.5, on release page [here](https://github.com/samtools/htslib/releases).
+
+For installation:
+
+```
+$ tar -jxvf htslib-1.5.tar.bz2
+$ cd htslib-1.5
+$ ./configure --prefix="$HOME/local" CFLAGS="-I$HOME/local/include" LDFLAGS="-L$HOME/local/lib"
+$ make
+$ make install
+```
+
+[return to top](#top)
+
 ### > Infernal {#infernal}
 
-* <font color="#808080">Supports:</font> [Prokka](#prokka) depends on this.
+* <font color="#808080">Supports:</font> [Prokka](#prokka).
 
 Project home is [here](http://eddylab.org/infernal/) and you can download the latest relase source code via [this link](http://eddylab.org/infernal/infernal-1.1.2.tar.gz). Make sure you install version >= 1.1 anyway.
 
@@ -324,7 +424,7 @@ $ make install
 
 ### > Jellyfish {#jellyfish}
 
-* <font color="#808080">Supports:</font> [Kraken](#kraken) depends on this.
+* <font color="#808080">Supports:</font> [Kraken](#kraken).
 * <font color="#00FF80">Simple:</font> Simple compilation and installation.
 
 Latest release of Jellyfish is 2.2.6, however, Kraken specifically requires Jellyfish v1.x. The latest comparable version (v1.1.11) source codes can be found with [this download](http://www.cbcb.umd.edu/software/jellyfish/jellyfish-1.1.11.tar.gz). Also visit [GitHub](https://github.com/gmarcais/Jellyfish) repository for newer versions.
@@ -343,7 +443,7 @@ $ make install
 
 ### > GNU Parallel {#parallel}
 
-* <font color="#808080">Supports:</font> [Prokka](#prokka) depends on this.
+* <font color="#808080">Supports:</font> [Prokka](#prokka).
 * <font color="#00FF80">Simple:</font> Simple compilation and installation.
 
 GNU Parallel is a library belongs to the GNU project. You can find its project home on [GNU website](https://www.gnu.org/software/parallel/), or take a look at its [FTP repository](ftp://ftp.gnu.org/gnu/parallel/), or directly download the [latest release](ftp://ftp.gnu.org/gnu/parallel/parallel-20170722.tar.bz2). Make sure you install version >= 20130422 anyway (latest version appears on bottom of this page).
@@ -362,7 +462,7 @@ $ make install
 
 ### > Prodigal {#prodigal}
 
-* <font color="#808080">Supports:</font> [Prokka](#prokka) depends on this.
+* <font color="#808080">Supports:</font> [Prokka](#prokka).
 * <font color="#00FF80">Simple:</font> Simple compilation and installation.
 
 Download the source code [here](https://github.com/hyattpd/Prodigal/archive/v2.6.3.tar.gz) via [GitHub](https://github.com/hyattpd/Prodigal/).
@@ -379,7 +479,7 @@ $ make install INSTALLDIR="$HOME/local/bin"
 
 ### > Prokka {#prokka}
 
-* <font color="#00FFFF">Dependencies:</font> Depends on [Aragorn](#aragorn), [BLAST+](#blast), [Hmmer](#hmmer), [Infernal](#infernal), [GNU Parallel](#parallel), [Prodigal](#prodigal), [tbl2asn](#tbl2asn), [XML::Simple](xml_simple) to work.
+* <font color="#00FFFF">Dependencies:</font> [Aragorn](#aragorn), [BLAST+](#blast), [Hmmer](#hmmer), [Infernal](#infernal), [GNU Parallel](#parallel), [Prodigal](#prodigal), [tbl2asn](#tbl2asn), [XML::Simple](xml_simple).
 * <font color="#00FF80">No-compile:</font> No need to compile.
 * <font color="#FF8000">Special:</font> Need to build databases after successful installation.
 
@@ -406,9 +506,28 @@ $ prokka --setupdb
 
 [return to top](#top)
 
+### > Samtools {#samtools}
+
+* <font color="#808080">Supports:</font> [Bcftools](#bcftools), [Pysam](#pysam).
+* <font color="#00FFFF">Dependencies:</font> [HTSlib](#htslib).
+
+[Bcftools](#bcftools), [HTSlib](#htslib) and [Samtools](#samtools) come as a suite. If you try to install more than one of them, it is better to install the same version across. The repository page on GitHub is [here](https://github.com/samtools). The latest version so far is 1.5, on release page [here](https://github.com/samtools/samtools/releases). Samtools are already built on Discovery cluster, however, it is relatively low in version (0.1.19).
+
+For installation:
+
+```
+$ tar -jxvf samtools-1.5.tar.bz2
+$ cd samtools-1.5
+$ ./configure --prefix="$HOME/local" CFLAGS="-I$HOME/local/include" LDFLAGS="-L$HOME/local/lib" --with-htslib="$HOME/local" --without-curses
+$ make
+$ make install
+```
+
+[return to top](#top)
+
 ### > tbl2asn {#tbl2asn}
 
-* <font color="#808080">Supports:</font> [Prokka](#prokka) depends on this.
+* <font color="#808080">Supports:</font> [Prokka](#prokka).
 * <font color="#00FF80">No-compile:</font> No need to compile.
 
 The pre-compiled binary file is available on NCBI via [this link](ftp://ftp.ncbi.nih.gov/toolbox/ncbi_tools/converters/by_program/tbl2asn/linux64.tbl2asn.gz) or check out [this FTP](ftp://ftp.ncbi.nih.gov/toolbox/ncbi_tools/converters/by_program/tbl2asn/)
@@ -423,9 +542,27 @@ $ mv linux64.tbl2asn ~/local/bin/tbl2asn
 
 [return to top](#top)
 
+### > XZ Utils {#xzutils}
+
+* <font color="#808080">Supports:</font> [HTSlib](#htslib).
+
+Visit [project home](https://tukaani.org/xz/) and download latest version (v5.2.3) [here](https://tukaani.org/xz/xz-5.2.3.tar.gz), or clone from [GitHub](git clone https://git.tukaani.org/xz). This library is also knwos as LZMA.
+
+For installation:
+
+```
+$ tar -zxvf xz-5.2.3.tar.gz
+$ cd xz-5.2.3
+$ ./configure --prefix="$HOME/local"
+$ make
+$ make install
+```
+
+[return to top](#top)
+
 ### > Zlib {#zlib}
 
-* <font color="#808080">Supports:</font> [Bedtools](#bedtools) depends on this.
+* <font color="#808080">Supports:</font> [Bedtools](#bedtools).
 * <font color="#FF0000">Attention:</font> Compiling with special attention.
 
 Visit [project home](https://zlib.net/) and download latest version (v1.2.11) [here](https://zlib.net/zlib-1.2.11.tar.gz). Zlib is actually already built on Discovery cluster, however, bedtools specifically requires a static library (libz.a) to link, which cannot be found on Discovery cluster. You can use my build (/home/li.gua/usr/zlib/1.2.11/lib/libz.a) instead of building your own. Since it is a static library, once bedtools is linked, it is no longer required.
@@ -493,6 +630,7 @@ $ export PYTHONPATH="$HOME/local/lib/python3.5/site-packages"
 ### > CONCOCT (Python2) {#concoct}
 
 * <font color="#FF8000">Special:</font> This is a Python module.
+* <font color="#00FFFF">Dependencies:</font> [Pysam](#pysam).
 * <font color="#FF0000">Attention:</font> This library only works for Python2.
 
 Due to the pip bug (specifically in this version on Discovery cluster, not anyone), we have to install the module manually from source code. Download from [GitHub](https://github.com/BinPro/CONCOCT/archive/0.4.0.tar.gz).
@@ -513,6 +651,28 @@ $ module load python-2.7.5
 $ export PYTHONPATH="$HOME/local/lib/python2.7/site-packages"
 
 $ concoct --help
+```
+
+[return to top](#top)
+
+### > Pysam (Python) {#pysam}
+
+* <font color="#FF8000">Special:</font> This is a Python module.
+* <font color="#808080">Supports:</font> [CONCOCT](#concoct).
+* <font color="#00FFFF">Dependencies:</font> [Samtools](#samtools).
+
+Source code packages can be found on [GitHub](https://github.com/samtools/htslib).
+
+<font color="#00FF00"><b>Note:</b></font> This module is intended to support CONCOCT, thus I installed it with python2.7:
+
+```
+$ module load python-2.7.5
+$ export PYTHONPATH="$HOME/local/lib/python2.7/site-packages"
+
+$ git clone https://github.com/pysam-developers/pysam.git
+$ cd pysam
+$ python setup.py build
+$ python setup.py install --prefix="$HOME/local"
 ```
 
 [return to top](#top)
@@ -541,25 +701,64 @@ $ quast --help
 
 [return to top](#top)
 
-### > XML::Simple (Perl) {#xml_simple}
+### > List::MoreUtils (Perl) {#list_moreutils}
 
-* <font color="#808080">Supports:</font> [Prokka](#prokka) depends on this.
+* <font color="#808080">Supports:</font> [BLAST+](#blast).
 * <font color="#FF8000">Special:</font> This is a perl module. Make sure you loaded module perl-5.20.0 before procceding.
 
 For installation:
 
-First, open cpan (answer 'yes' when asked about automation):
+First, open cpan (answer 'yes' when asked about automation) and input commands below (this only needs to be done once). These commands will assign a local location for building perl modules:
 
 ```
 $ cpan
-```
 
-Since we don't have sudo privilege, we need to change the install prefix to our local directory, then install the module. In cpan, input below commands:
-
-```
+cpan> o conf mbuildpl_arg "--install_base /home/your_account_name/local/"
 cpan> o conf makepl_arg "PREFIX=/home/your_account_name/local/"
 cpan> o conf commit
-cpan> install XML::Simple
+```
+
+Then in cpan, install this modue by:
+
+```
+cpan> force install List::MoreUtils
+```
+
+Also do not forget to export the local library path by this shell command (this only needs to be done once):
+
+```
+$ echo "export PERL5LIB=/home/your_account_name/local/share/perl5:/home/your_account_name/local/site_perl/5.20.0:$PERL5LIB" >> ~/.bashrc
+```
+
+[return to top](#top)
+
+### > XML::Simple (Perl) {#xml_simple}
+
+* <font color="#808080">Supports:</font> [Prokka](#prokka).
+* <font color="#FF8000">Special:</font> This is a perl module. Make sure you loaded module perl-5.20.0 before procceding.
+
+For installation:
+
+First, open cpan (answer 'yes' when asked about automation) and input commands below (this only needs to be done once). These commands will assign a local location for building perl modules:
+
+```
+$ cpan
+
+cpan> o conf mbuildpl_arg "--install_base /home/your_account_name/local/"
+cpan> o conf makepl_arg "PREFIX=/home/your_account_name/local/"
+cpan> o conf commit
+```
+
+Then in cpan, install this modue by:
+
+```
+cpan> force install XML::Simple
+```
+
+Also do not forget to export the local library path by this shell command (this only needs to be done once):
+
+```
+$ echo "export PERL5LIB=/home/your_account_name/local/share/perl5:/home/your_account_name/local/site_perl/5.20.0:$PERL5LIB" >> ~/.bashrc
 ```
 
 [return to top](#top)
