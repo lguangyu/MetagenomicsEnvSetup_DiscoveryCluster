@@ -8,7 +8,63 @@ output: html_document
 
 # Overview {#top}
 
-This protocol helps setting up a basic metagenomics computational environment on NEU's Discovery cluster (Linux, and with no administrative (sudo) privileges). Note anyone tries to install those software manually as shown in this protocol is assumed to have basic knowledge of Linux, mandatory skill set of working with terminal (bash) and know how to connect to a remote machine and run commands via ssh. Before the installation, please read the [general guidance](#general) first. Installing programs are listed below:
+This protocol helps setting up a basic metagenomics computational environment on NEU's Discovery cluster (Linux, and with no administrative (sudo) privileges). Note anyone tries to install those software manually as shown in this protocol is assumed to have basic knowledge of Linux, mandatory skill set of working with terminal (bash) and know how to connect to a remote machine and run commands via ssh. Before the installation, please read the [general guidance](#general) first. Installing programs are in this [list](#install).
+
+
+# General guidance about working on Discovery cluster {#general}
+
+### Managing space
+
+Your home directory (/home/you_account_name/) on Discovery cluster (which is your "own space") has a 30GB limit. It is good to install your softwares into, but not run any jobs or build any databases in the home directory. Instead, you should create your own scratch directory in /scratch/your_account_name/. The scratch partition is 1.1PB (1PB=1024TB, 1TB=1024GB) in size and should be sufficient to run most of the jobs. But still make sure that clean the temporary files in your scratch directory after each job is done.
+
+### Running jobs
+
+Once you connected to the Discovery cluster (via discover2.neu.edu or discovery4.neu.edu), you are on "login nodes". These nodes are not designed of running cpu-intensive jobs, so <b>DO NOT RUN ANY JOBS ON THESE NODES</b>. To run jobs, you should allocate an "interactive node" or submit as a "batch job" to the computing nodes (discribed in detail [here](https://www.northeastern.edu/rc/?page_id=18)). However, most computing nodes don't have the access to internet. You have to <b>downloading data on login nodes</b>, or download locally then scp to the remote machine.
+
+### Organizing your software
+
+Everyone has his own manner of organizing files. On Linux systems, a common way of installing software locally is creating a directory called "local" in your home directory, and assign it as prefix whenever installing a software. This protocol is written assuming this manner of organizing, which is better for general use; however, if you copy my build directly, the organizing is different, which, in result will be a bit easier when multiple versions coexist. 
+
+<font color="#00FF00"><b>Guide:</b></font> If you choose the first way, running these codes first before installing any software:
+
+```
+$ if [[ !-d ~/local ]]; then mkdir ~/local; fi
+$ if [[ !-d ~/local/bin ]]; then mkdir ~/local/bin; fi
+$ if [[ !-d ~/local/include ]]; then mkdir ~/local/include; fi
+$ if [[ !-d ~/local/lib ]]; then mkdir ~/local/lib; fi
+$ if [[ !-d ~/Programs ]]; then mkdir ~/Programs; fi # this directory holds all other scripts come with all packages
+```
+
+<font color="#00FF00"><b>Note:</b></font> Feel free to explore [NEU's research computing website](https://www.northeastern.edu/rc/) for more information, policies and tutorials about working with Discovery cluster.
+
+[return to top](#top)
+
+
+# List of installing software {#install}
+
+
+### What's already on Discovery cluster
+
+These software are already installed and ready to use in general. If multiple versions of a software are present, the newest version is listed below. Some of the software may be a bit out of date, but still operational in most cases.
+
+* GCC 4.9.3
+* GNU C/C++ library (glibc/glibcxx)
+* GNU Scientific Library (GSL)
+* SQLite3
+* Perl 5.20.0
+* R 3.3.3
+* Python 2.7.5
+* Python 3.5.2
+* Oracle JDK 1.8
+* SAMtools 0.1.19
+* Bowtie 2.1.0
+* BLAST+ 2.2.28
+* Libraries (HDF5, etc.)
+* Perl modules (BioPerl)
+* Python2 libs (pip, NumPy, Scipy, matplotlib, Sklearn, BioPython, etc.)
+* Python3 libs (pip, NumPy, Scipy, matplotlib, Sklearn, BioPython, etc.)
+
+<font color="#FF0000"><b>Important:</b></font> The Discovery cluster is found pool in organizing coexisting Python2 and Python3 (Python3 is not the superset of Python2!). Loading these two versions simultaneously causes path problem (specifically by Python2 module). So when run some scripts that require loaded modules, load single module at a time and reset your bash environment before doing next steps! Another solution requires more Linux knowledge and efforts, to install a virtual envrionment and install your own modules inside. However, this too will cause some issues (e.g., matplotlib).
 
 ### Utility software
 
@@ -19,7 +75,7 @@ This protocol helps setting up a basic metagenomics computational environment on
 
 ### Binary programs and dependencies {#load_gcc}
 
-<font color="#FF0000"><b>Important:</b></font> Due to the poor maintenance of Discovery cluster, loaded modules will cause problems in finding programs. Hence make sure that no other modules except the three mandatory one (perl, wfft and slurm) are loaded, then in terminal, input:
+<font color="#FF0000"><b>Important:</b></font> Due to the poor maintenance of Discovery cluster, loaded modules will cause problems in finding programs. Hence make sure that no other modules except the three mandatory ones (perl, fftw and slurm) are loaded, then in terminal, input:
 
 ```
 $ module load gnu-4.9.3-compilers
@@ -44,7 +100,7 @@ to load the gcc 4.9.3 compiler before installing software in this list. If you a
 * [GNU Parallel](#parallel)
 * [Prodigal](#prodigal)
 * [Prokka](#prokka)
-* [Samtools](#samtools)
+* [SAMtools](#samtools)
 * [tbl2asn](#tbl2asn)
 * [XZ Utils](#xzutils)
 * [Zlib](#zlib)
@@ -71,45 +127,18 @@ to load the gcc 4.9.3 compiler before installing software in this list. If you a
 <font color="#00FF00"><b>Note:</b></font> During compiling, warnings can be ignored safely in almost all cases.
 
 
-# General guidance about working on Discovery cluster {#general}
-
-### Managing space
-
-Your home directory (/home/you_account_name/) on Discovery cluster (which is your "own space") has a 30GB limit. It is good to install your softwares into, but not run any jobs or build any databases in the home directory. Instead, you should create your own scratch directory in /scratch/your_account_name/. The scratch partition is 1.1PB (1PB=1024TB, 1TB=1024GB) in size and should be sufficient to run most of the jobs. But still make sure that clean the temporary files in your scratch directory after each job is done.
-
-### Running jobs
-
-Once you connected to the Discovery cluster (via discover2.neu.edu or discovery4.neu.edu), you are on "login nodes". These nodes are not designed of running cpu-intensive jobs, so <b>DO NOT RUN ANY JOBS ON THESE NODES</b>. To run jobs, you should allocate an "interactive node" or submit as a "batch job" to the computing nodes (discribed in detail [here](https://www.northeastern.edu/rc/?page_id=18)). However, most computing nodes don't have the access to internet. You have to <b>downloading data on login nodes</b>, or download locally then scp to the remote machine.
-
-### Organizing your software
-
-Everyone has his own manner of organizing files. On Linux systems, a common way of installing software locally is creating a directory called "local" in your home directory, and assign it as prefix whenever installing a software. This protocol is written assuming this manner of organizing, which is better for general use; however, if you copy my build directly, the organizing is different, which, in result will be a bit easier when multiple versions coexist. 
-
-<font color="#00FF00"><b>Guide:</b></font> If you choose the first way, running these codes first before installing any software:
-
-```
-$ if [[ !-d ~/local ]]; then mkdir ~/local; fi
-$ if [[ !-d ~/local/bin ]]; then mkdir ~/local/bin; fi
-$ if [[ !-d ~/local/include ]]; then mkdir ~/local/include; fi
-$ if [[ !-d ~/local/lib ]]; then mkdir ~/local/lib; fi
-```
-
-<font color="#00FF00"><b>Note:</b></font> Feel free to explore [NEU's research computing website](https://www.northeastern.edu/rc/) for more information, policies and tutorials about working with Discovery cluster.
-
-[return to top](#top)
-
-
 # Installation guide
 
 
 ## For impatient people {#impatient}
 
-If you only want operational software (hopefully they will work), you can just copy my build and path settings directly by running (will take a long while):
+If you only want operational software (hopefully they will work), you can just copy my build and path settings directly by running (unfortunately you still need to be patient because it takes a long long while):
 
 ```
 $ cp -r /home/li.gua/usr/ ~/
 $ cp -r /home/li.gua/Jar/ ~/
-cp 
+$ cp -r /home/li.gua/Programs/ ~/
+$ cp /home/li.gua/.ncbirc ~/
 $ cat /home/li.gua/.bash_paths >> ~/.bashrc
 $ . ~/.bashrc
 ```
@@ -150,6 +179,7 @@ If you download from the GitHub release (v0.8), it is already compiled. Just nee
 $ unzip barrnap-0.8.zip
 $ cd barrnap-0.8
 $ cp ./bin/barrnap ~/local/bin/
+$ cp -r ./db ~/local/ # copy this db to this location; however, you can copy to anywhere else and change its path by opening barrnap in vim (it's basically a perl program)
 $ #cp ./binaries/linux/nhmmer ~/local/bin/ # this is necessary in some cases; however we will install hmmer anyway, so this is not necessary (it comes with hmmer, too)
 ```
 
@@ -159,7 +189,7 @@ $ #cp ./binaries/linux/nhmmer ~/local/bin/ # this is necessary in some cases; ho
 
 * <font color="#00FFFF">Dependencies:</font> [HTSlib](#htslib).
 
-[Bcftools](#bcftools), [HTSlib](#htslib) and [Samtools](#samtools) come as a suite. If you try to install more than one of them, it is better to install the same version across. The repository page on GitHub is [here](https://github.com/samtools). The latest version so far is 1.5, on release page [here](https://github.com/samtools/bcftools/releases). Samtools are already built on Discovery cluster, however, it is relatively low in version (0.1.19).
+[Bcftools](#bcftools), [HTSlib](#htslib) and [SAMtools](#samtools) come as a suite. If you try to install more than one of them, it is better to install the same version across. The repository page on GitHub is [here](https://github.com/SAMtools). The latest version so far is 1.5, on release page [here](https://github.com/SAMtools/bcftools/releases). SAMtools are already built on Discovery cluster, however, it is relatively low in version (0.1.19).
 
 For installation:
 
@@ -387,10 +417,10 @@ $ make install
 
 ### > HTSlib {#htslib}
 
-* <font color="#808080">Supports:</font> [Bcftools](bcftools), [Samtools](#samtools).
+* <font color="#808080">Supports:</font> [Bcftools](bcftools), [SAMtools](#samtools).
 * <font color="#00FFFF">Dependencies:</font> [Bzip2](#bzip2), [XZ Utils](#xzutils).
 
-[Bcftools](#bcftools), [HTSlib](#htslib) and [Samtools](#samtools) come as a suite. If you try to install more than one of them, it is better to install the same version across. The repository page on GitHub is [here](https://github.com/samtools). The latest version so far is 1.5, on release page [here](https://github.com/samtools/htslib/releases).
+[Bcftools](#bcftools), [HTSlib](#htslib) and [SAMtools](#samtools) come as a suite. If you try to install more than one of them, it is better to install the same version across. The repository page on GitHub is [here](https://github.com/SAMtools). The latest version so far is 1.5, on release page [here](https://github.com/SAMtools/htslib/releases).
 
 For installation:
 
@@ -506,18 +536,18 @@ $ prokka --setupdb
 
 [return to top](#top)
 
-### > Samtools {#samtools}
+### > SAMtools {#samtools}
 
 * <font color="#808080">Supports:</font> [Bcftools](#bcftools), [Pysam](#pysam).
 * <font color="#00FFFF">Dependencies:</font> [HTSlib](#htslib).
 
-[Bcftools](#bcftools), [HTSlib](#htslib) and [Samtools](#samtools) come as a suite. If you try to install more than one of them, it is better to install the same version across. The repository page on GitHub is [here](https://github.com/samtools). The latest version so far is 1.5, on release page [here](https://github.com/samtools/samtools/releases). Samtools are already built on Discovery cluster, however, it is relatively low in version (0.1.19).
+[Bcftools](#bcftools), [HTSlib](#htslib) and [SAMtools](#samtools) come as a suite. If you try to install more than one of them, it is better to install the same version across. The repository page on GitHub is [here](https://github.com/SAMtools). The latest version so far is 1.5, on release page [here](https://github.com/SAMtools/SAMtools/releases). SAMtools are already built on Discovery cluster, however, it is relatively low in version (0.1.19).
 
 For installation:
 
 ```
-$ tar -jxvf samtools-1.5.tar.bz2
-$ cd samtools-1.5
+$ tar -jxvf SAMtools-1.5.tar.bz2
+$ cd SAMtools-1.5
 $ ./configure --prefix="$HOME/local" CFLAGS="-I$HOME/local/include" LDFLAGS="-L$HOME/local/lib" --with-htslib="$HOME/local" --without-curses
 $ make
 $ make install
@@ -632,6 +662,7 @@ $ export PYTHONPATH="$HOME/local/lib/python3.5/site-packages"
 * <font color="#FF8000">Special:</font> This is a Python module.
 * <font color="#00FFFF">Dependencies:</font> [Pysam](#pysam).
 * <font color="#FF0000">Attention:</font> This library only works for Python2.
+* <font color="#FF0000">Attention:</font> Special components should be installed.
 
 Due to the pip bug (specifically in this version on Discovery cluster, not anyone), we have to install the module manually from source code. Download from [GitHub](https://github.com/BinPro/CONCOCT/archive/0.4.0.tar.gz).
 
@@ -642,6 +673,19 @@ $ export PYTHONPATH="$HOME/local/lib/python2.7/site-packages"
 $ tar -zxvf CONCOCT-0.4.0.tar.gz
 $ cd CONCOCT-0.4.0
 $ python setup.py install --prefix="$HOME/local"
+
+$ cp scripts/ ~/Programs/CONCOCT/ # copy all scripts
+$ cp scgs/ ~/Programs/CONCOCT/scgs/
+```
+
+The Cdd to Cog table is out-of-date with the newer versions of Cdd. It should be updated with a little perl:
+
+```
+# the mapping table from Cdd to Cog:
+$ cd ~/Programs/CONCOCT/scgs/
+$ wget ftp://ftp.ncbi.nih.gov/pub/mmdb/cdd/cddid_all.tbl.gz
+$ gunzip cddid_all.tbl.gz
+$ cut -f 1-2 cddid_all.tbl | perl -ne 'chomp $_;if($_=~/COG\d+$/){print($_,"\n");}' > cdd_to_cog.tsv
 ```
 
 This installation will put a exceutable script into ~/local/bin, (no need to do 'import concoct' within python). For calling concoct:
@@ -659,9 +703,9 @@ $ concoct --help
 
 * <font color="#FF8000">Special:</font> This is a Python module.
 * <font color="#808080">Supports:</font> [CONCOCT](#concoct).
-* <font color="#00FFFF">Dependencies:</font> [Samtools](#samtools).
+* <font color="#00FFFF">Dependencies:</font> [SAMtools](#samtools).
 
-Source code packages can be found on [GitHub](https://github.com/samtools/htslib).
+Source code packages can be found on [GitHub](https://github.com/SAMtools/htslib).
 
 <font color="#00FF00"><b>Note:</b></font> This module is intended to support CONCOCT, thus I installed it with python2.7:
 
