@@ -47,7 +47,7 @@ $ if [[ !-d ~/Programs ]]; then mkdir ~/Programs; fi # this directory holds all 
 
 These software are already installed and ready to use in general. If multiple versions of a software are present, the newest version is listed below. Some of the software may be a bit out of date, but still operational in most cases.
 
-* GCC 4.9.3
+* GCC 5.2.1
 * GNU C/C++ library (glibc/glibcxx)
 * GNU Scientific Library (GSL)
 * SQLite3
@@ -68,7 +68,7 @@ These software are already installed and ready to use in general. If multiple ve
 
 ### Utility software
 
-<font color="#0000FF"><b>Optional:</b></font> These software are optional. For general use, I recommend <b>NOT</b> install them unless specific requirements needed (i.e. in case very new software is needed which fails compilation using existing gcc (4.9.3); such case, however, is very rare. The gcc 4.9.3 should satisfy most time.)
+<font color="#0000FF"><b>Optional:</b></font> These software are optional. For general use, I recommend <b>NOT</b> install them unless specific requirements needed (i.e. in case very new software is needed which fails compilation using existing gcc (5.2.1); such case, however, is very rare. The gcc 5.2.1 should satisfy most time.)
 
 * [GCC 5.4.0 (optional)](#gcc)
 * [GNU binutils (optional)](#binutils)
@@ -78,10 +78,10 @@ These software are already installed and ready to use in general. If multiple ve
 <font color="#FF0000"><b>Important:</b></font> Due to the poor maintenance of Discovery cluster, loaded modules will cause problems in finding programs. Hence make sure that no other modules except the three mandatory ones (perl, fftw and slurm) are loaded, then in terminal, input:
 
 ```
-$ module load gnu-4.9.3-compilers
+$ module load gnu-5.2.1-OpenACC_2.0-Cuda7.0
 ```
 
-to load the gcc 4.9.3 compiler before installing software in this list. If you already build the gcc 5.4.0 in the above list, just skip this.
+to load the gcc 5.2.1 compiler before installing software in this list. If you already build the gcc 5.4.0 in the above list, just skip this.
 
 * [Aragorn](#aragorn)
 * [Barrnap](#barrnap)
@@ -820,7 +820,7 @@ $ tar -zxvf gcc-5.4.0.tar.gz
 $ cd gcc-5.4.0
 $ contrib/download_prerequisites # this downloads the prerequisites like gmp, mpfr, etc., and automatically build with gcc.
 $ mkdir build_dir && cd build_dir
-$ ../configure --prefix="$HOME/usr/gcc/5.4.0" --enable-languages=c,c++,fortran # you can also add ada and go if needed
+$ ../configure --prefix="$HOME/usr/gcc/5.4.0" --enable-languages=c,c++,fortran --disable-multilib # you can also add ada and go if needed
 $ make -j 32 # allocate a 32-CPU node to do this will be a lot faster
 $ make check -j 32 # I encountered a failure, in zmp or something, but not critical, so ignored
 $ make install
@@ -832,7 +832,7 @@ $ make install
 
 ### Binutils (Optional) {#binutils}
 
-Binutils are essential to compilers but not released in GCC suite. The two most imporatant ones are as (assembler) and ld (linker). The as and ld version on Discovery cluster is extremely out-of-date (released in 2010; compare to GCC 4.9.3, in 2015). This will cause some problems in compiling newer software. Download GNU binutils from [GNU FTP](ftp://ftp.gnu.org/gnu/binutils/) (I downloaded version 2.26.1). Then:
+Binutils are essential to compilers but not released in GCC suite. The two most imporatant ones are as (assembler) and ld (linker). The as and ld version on Discovery cluster is extremely out-of-date (released in 2010; compare to GCC 5.2.1, in 2015). This will cause some problems in compiling newer software. Download GNU binutils from [GNU FTP](ftp://ftp.gnu.org/gnu/binutils/) (I downloaded version 2.26.1). Then:
 
 ```
 $ tar -zxvf binutils-2.26.1.tar.gz

@@ -1,0 +1,12 @@
+building bowtie: TBB (no .h files)  make NO_TBB=1 LDFLAGS="-L$HOME/usr/bzip2/1.0.6/lib"; make install prefix=""
+
+building bzip2 make -f Makefile-so(something)
+
+other BLAST dbs
+ftp://ftp.ncbi.nih.gov/pub/mmdb/cdd/little_endian/
+ftp://ftp.ncbi.nih.gov/pub/mmdb/cdd/big_endian/
+
+git clone git://github.com/chapmanb/bcbb.git  gff
+
+
+

@@ -156,7 +156,7 @@ $ if [[ !-d ~/Programs ]]; then mkdir ~/Programs; fi # this directory holds all 
 <h3>What’s already on Discovery cluster</h3>
 <p>These software are already installed and ready to use in general. If multiple versions of a software are present, the newest version is listed below. Some of the software may be a bit out of date, but still operational in most cases.</p>
 <ul>
-<li>GCC 4.9.3</li>
+<li>GCC 5.2.1</li>
 <li>GNU C/C++ library (glibc/glibcxx)</li>
 <li>GNU Scientific Library (GSL)</li>
 <li>SQLite3</li>
@@ -177,7 +177,7 @@ $ if [[ !-d ~/Programs ]]; then mkdir ~/Programs; fi # this directory holds all 
 </div>
 <div id="utility-software" class="section level3">
 <h3>Utility software</h3>
-<p><font color="#0000FF"><b>Optional:</b></font> These software are optional. For general use, I recommend <b>NOT</b> install them unless specific requirements needed (i.e. in case very new software is needed which fails compilation using existing gcc (4.9.3); such case, however, is very rare. The gcc 4.9.3 should satisfy most time.)</p>
+<p><font color="#0000FF"><b>Optional:</b></font> These software are optional. For general use, I recommend <b>NOT</b> install them unless specific requirements needed (i.e. in case very new software is needed which fails compilation using existing gcc (5.2.1); such case, however, is very rare. The gcc 5.2.1 should satisfy most time.)</p>
 <ul>
 <li><a href="#gcc">GCC 5.4.0 (optional)</a></li>
 <li><a href="#binutils">GNU binutils (optional)</a></li>
@@ -186,8 +186,8 @@ $ if [[ !-d ~/Programs ]]; then mkdir ~/Programs; fi # this directory holds all 
 <div id="load_gcc" class="section level3">
 <h3>Binary programs and dependencies</h3>
 <p><font color="#FF0000"><b>Important:</b></font> Due to the poor maintenance of Discovery cluster, loaded modules will cause problems in finding programs. Hence make sure that no other modules except the three mandatory ones (perl, fftw and slurm) are loaded, then in terminal, input:</p>
-<pre><code>$ module load gnu-4.9.3-compilers</code></pre>
-<p>to load the gcc 4.9.3 compiler before installing software in this list. If you already build the gcc 5.4.0 in the above list, just skip this.</p>
+<pre><code>$ module load gnu-5.2.1-OpenACC_2.0-Cuda7.0</code></pre>
+<p>to load the gcc 5.2.1 compiler before installing software in this list. If you already build the gcc 5.4.0 in the above list, just skip this.</p>
 <ul>
 <li><a href="#aragorn">Aragorn</a></li>
 <li><a href="#barrnap">Barrnap</a></li>
@@ -277,6 +277,7 @@ $ cp aragorn ~/local/bin/</code></pre>
 <pre><code>$ unzip barrnap-0.8.zip
 $ cd barrnap-0.8
 $ cp ./bin/barrnap ~/local/bin/
+$ cp -r ./db ~/local/ # copy this db to this location; however, you can copy to anywhere else and change its path by opening barrnap in vim (it's basically a perl program)
 $ #cp ./binaries/linux/nhmmer ~/local/bin/ # this is necessary in some cases; however we will install hmmer anyway, so this is not necessary (it comes with hmmer, too)</code></pre>
 <p><a href="#top">return to top</a></p>
 </div>
@@ -743,7 +744,7 @@ cpan&gt; o conf commit</code></pre>
 $ cd gcc-5.4.0
 $ contrib/download_prerequisites # this downloads the prerequisites like gmp, mpfr, etc., and automatically build with gcc.
 $ mkdir build_dir &amp;&amp; cd build_dir
-$ ../configure --prefix=&quot;$HOME/usr/gcc/5.4.0&quot; --enable-languages=c,c++,fortran # you can also add ada and go if needed
+$ ../configure --prefix=&quot;$HOME/usr/gcc/5.4.0&quot; --enable-languages=c,c++,fortran --disable-multilib # you can also add ada and go if needed
 $ make -j 32 # allocate a 32-CPU node to do this will be a lot faster
 $ make check -j 32 # I encountered a failure, in zmp or something, but not critical, so ignored
 $ make install</code></pre>
@@ -752,7 +753,7 @@ $ make install</code></pre>
 </div>
 <div id="binutils" class="section level3">
 <h3>Binutils (Optional)</h3>
-<p>Binutils are essential to compilers but not released in GCC suite. The two most imporatant ones are as (assembler) and ld (linker). The as and ld version on Discovery cluster is extremely out-of-date (released in 2010; compare to GCC 4.9.3, in 2015). This will cause some problems in compiling newer software. Download GNU binutils from <a href="ftp://ftp.gnu.org/gnu/binutils/">GNU FTP</a> (I downloaded version 2.26.1). Then:</p>
+<p>Binutils are essential to compilers but not released in GCC suite. The two most imporatant ones are as (assembler) and ld (linker). The as and ld version on Discovery cluster is extremely out-of-date (released in 2010; compare to GCC 5.2.1, in 2015). This will cause some problems in compiling newer software. Download GNU binutils from <a href="ftp://ftp.gnu.org/gnu/binutils/">GNU FTP</a> (I downloaded version 2.26.1). Then:</p>
 <pre><code>$ tar -zxvf binutils-2.26.1.tar.gz
 $ cd binutils-2.26.1
 $ mkdir build_dir &amp;&amp; cd build_dir
